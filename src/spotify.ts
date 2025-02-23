@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-const CLIENT_SECRET = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
+const clientId = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
+const clientSecret = process.env.REACT_APP_SPOTIFY_CLIENT_SECRET;
 
 let accessToken: string | null = null;
 let tokenExpirationTime: number | null = null;
