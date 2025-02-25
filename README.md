@@ -1,12 +1,9 @@
-# Rankify 🎵
-
-## Logo
-![Rankify Logo](https://imgur.com/a/SxnfCt4)
-
-Rankify
-A music ranking platform that lets users search for albums on Spotify and rank them from best to worst.
-
-Play now 👉 https://nihrg-rankify.netlify.app/
+<div align="center">
+  <img src="./public/logo.png" width="100" height="100" alt="Rankify Logo">
+  <h1>Rankify 🎵</h1>
+  <p>A music ranking platform that lets users search for albums on Spotify and rank them from best to worst.</p>
+  <p>Play now 👉 <a href="https://nihrg-rankify.netlify.app/" target="_blank" rel="noreferrer">https://nihrg-rankify.netlify.app/</a></p>
+</div>
 
 ## About
 Rankify is a platform that allows users to rank their favorite songs from any album using a drag-and-drop interface. Whether you're debating the best song on a new release or ranking classic albums, Rankify helps you create and share personalized rankings. Built with React, TypeScript, Tailwind CSS, and DnD Kit.
