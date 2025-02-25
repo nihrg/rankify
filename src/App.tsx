@@ -93,7 +93,7 @@ function App() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Search for an album..."
+              placeholder="Search for an album or artist..."
               className="w-full px-4 py-3 pl-12 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-gray-400"
             />
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -182,9 +182,9 @@ function App() {
 
       <footer className="bg-gray-900 border-t border-gray-800 py-6">
         <div className="container mx-auto px-4 flex items-center justify-between">
-          <p className="text-gray-400">© 2025 Rankify</p>
+          <p className="text-gray-400">Nihar Guha © 2025</p>
           <a
-            href="https://github.com/yourusername/rankify"
+            href="https://github.com/nihrg/rankify"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center space-x-2 text-gray-400 hover:text-purple-400 transition-colors"
