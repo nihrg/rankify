@@ -2,7 +2,7 @@
   <img src="./public/logo.png" width="100" height="100" alt="Rankify Logo">
   <h1>Rankify 🎵</h1>
   <p>A music ranking platform that lets users search for albums on Spotify and rank them from best to worst.</p>
-  <p>Play now 👉 <a href="https://nihrg-rankify.netlify.app/" target="_blank" rel="noreferrer">https://nihrg-rankify.netlify.app/</a></p>
+  <p>Play now 👉 <a href="https://albumranker.netlify.app/" target="_blank" rel="noreferrer">Rankify/</a></p>
 </div>
 
 ## About
