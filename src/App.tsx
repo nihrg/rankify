@@ -182,7 +182,17 @@ function App() {
 
       <footer className="bg-gray-900 border-t border-gray-800 py-6">
         <div className="container mx-auto px-4 flex items-center justify-between">
-          <p className="text-gray-400">Nihar Guha © 2025</p>
+          <p className="text-gray-400">
+            <a
+              href="https://github.com/nihrg"
+              className="hover:text-purple-400 transition-colors"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Nihar Guha
+            </a>{" "}
+            © 2025
+          </p>
           <a
             href="https://github.com/nihrg/rankify"
             target="_blank"
