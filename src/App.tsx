@@ -1,210 +1,171 @@
-import React, { useState } from 'react';
-import { Search, Disc3, Github } from 'lucide-react';
-import { Album, Track } from './types';
-import { searchAlbums, getAlbumTracks } from './spotify';
+import React, { useState, useRef } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Disc3, Users } from 'lucide-react';
+import SearchBar from './components/SearchBar';
+import AlbumList from './components/AlbumList';
+import ArtistList from './components/ArtistList';
+import TrackList from './components/TrackList';
+import Rankings from './components/Playlist';
+import RankingsPage from './pages/Rankings';
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { SortableTrack } from './components/SortableTrack';
+  searchAlbums,
+  searchArtists,
+  searchTracks,
+  getAlbumTracks,
+  getArtistTopTracks,
+} from './api/spotify';
 
-function App() {
-  const [query, setQuery] = useState('');
-  const [albums, setAlbums] = useState<Album[]>([]);
-  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+function Search() {
+  const navigate = useNavigate();
+  const [albums, setAlbums] = useState([]);
+  const [artists, setArtists] = useState([]);
+  const [tracks, setTracks] = useState([]);
+  const [playlist, setPlaylist] = useState([]);
+  const [view, setView] = useState('albums');
+  const trackSectionRef = useRef<HTMLDivElement>(null);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleSearch = async () => {
-    if (!query.trim()) return;
-    
-    setIsLoading(true);
-    setError(null);
-    try {
-      const results = await searchAlbums(query);
-      setAlbums(results);
-    } catch (error) {
-      console.error('Error searching albums:', error);
-      setError('Failed to search albums. Please try again.');
-    } finally {
-      setIsLoading(false);
+  const handleSearch = async (query: string) => {
+    if (view === 'albums') {
+      const albumResults = await searchAlbums(query);
+      setAlbums(albumResults);
+      setArtists([]);
+    } else {
+      const artistResults = await searchArtists(query);
+      setArtists(artistResults);
+      setAlbums([]);
     }
+    setTracks([]);
   };
 
-  const handleSelectAlbum = async (album: Album) => {
-    setSelectedAlbum(album);
-    setIsLoading(true);
-    setError(null);
-    try {
-      const trackResults = await getAlbumTracks(album.id);
-      setTracks(trackResults);
-    } catch (error) {
-      console.error('Error fetching tracks:', error);
-      setError('Failed to fetch album tracks. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleAlbumSelect = async (album: any) => {
+    const trackResults = await getAlbumTracks(album.id);
+    setTracks(trackResults);
+    setTimeout(() => {
+      trackSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
+  const handleArtistSelect = async (artist: any) => {
+    const trackResults = await getArtistTopTracks(artist.id);
+    setTracks(trackResults);
+    setTimeout(() => {
+      trackSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
 
-    if (over && active.id !== over.id) {
-      setTracks((tracks) => {
-        const oldIndex = tracks.findIndex((track) => track.id === active.id);
-        const newIndex = tracks.findIndex((track) => track.id === over.id);
-        return arrayMove(tracks, oldIndex, newIndex);
-      });
-    }
+  const handleAddToPlaylist = (track: any) => {
+    setPlaylist((currentPlaylist) => {
+      if (!currentPlaylist.some((t) => t.id === track.id)) {
+        return [...currentPlaylist, track];
+      }
+      return currentPlaylist;
+    });
+  };
+
+  const handleRemoveFromPlaylist = (track: any) => {
+    setPlaylist((currentPlaylist) => 
+      currentPlaylist.filter((t) => t.id !== track.id)
+    );
+  };
+
+  const handleReorderPlaylist = (dragIndex: number, hoverIndex: number) => {
+    setPlaylist((currentPlaylist) => {
+      const newPlaylist = [...currentPlaylist];
+      const draggedTrack = newPlaylist[dragIndex];
+      newPlaylist.splice(dragIndex, 1);
+      newPlaylist.splice(hoverIndex, 0, draggedTrack);
+      return newPlaylist;
+    });
+  };
+
+  const handleNext = () => {
+    navigate('/rankings', { state: { tracks: playlist } });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black text-white flex flex-col">
-      <div className="container mx-auto px-4 py-8 flex-grow">
-        <div className="flex flex-col items-center mb-12">
-          <Disc3 className="w-16 h-16 mb-4 text-purple-400" />
-          <h1 className="text-4xl font-bold mb-2">Rankify</h1>
-          <p className="text-gray-400">Drag and drop tracks to rank them</p>
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black text-white">
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4">Rankify</h1>
+          <p className="text-gray-400">Drag tracks to create your perfect ranking</p>
         </div>
 
-        <div className="max-w-2xl mx-auto">
-          <div className="relative mb-8">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Search for an album or artist..."
-              className="w-full px-4 py-3 pl-12 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-gray-400"
-            />
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        <div className="flex justify-center mb-8">
+          <div className="flex space-x-4 bg-gray-800 rounded-full p-1">
             <button
-              onClick={handleSearch}
-              disabled={isLoading}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1 bg-purple-600 rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50"
+              onClick={() => setView('albums')}
+              className={`flex items-center px-6 py-2 rounded-full ${
+                view === 'albums'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
             >
-              {isLoading ? 'Searching...' : 'Search'}
+              <Disc3 size={20} className="mr-2" />
+              Albums
+            </button>
+            <button
+              onClick={() => setView('artists')}
+              className={`flex items-center px-6 py-2 rounded-full ${
+                view === 'artists'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Users size={20} className="mr-2" />
+              Artists
             </button>
           </div>
+        </div>
 
-          {error && (
-            <div className="bg-red-500 bg-opacity-10 border border-red-500 text-red-500 px-4 py-3 rounded-lg mb-8">
-              {error}
-            </div>
+        <div className="flex justify-center mb-12">
+          <SearchBar onSearch={handleSearch} view={view} />
+        </div>
+
+        <div className="mb-12">
+          {view === 'albums' && albums.length > 0 && (
+            <AlbumList albums={albums} onSelect={handleAlbumSelect} />
           )}
-
-          {!selectedAlbum && albums.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              {albums.map((album) => (
-                <div
-                  key={album.id}
-                  onClick={() => handleSelectAlbum(album)}
-                  className="bg-gray-800 rounded-lg p-4 flex items-center space-x-4 cursor-pointer hover:bg-gray-700 transition-colors"
-                >
-                  <img
-                    src={album.images[0].url}
-                    alt={album.name}
-                    className="w-20 h-20 rounded-md object-cover"
-                  />
-                  <div>
-                    <h3 className="font-semibold text-lg">{album.name}</h3>
-                    <p className="text-gray-400">{album.artists[0].name}</p>
-                    <p className="text-sm text-gray-500">{album.release_date}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {selectedAlbum && (
-            <div className="bg-gray-800 rounded-lg p-6">
-              <div className="flex items-center space-x-6 mb-8">
-                <img
-                  src={selectedAlbum.images[0].url}
-                  alt={selectedAlbum.name}
-                  className="w-32 h-32 rounded-lg shadow-lg"
-                />
-                <div>
-                  <h2 className="text-2xl font-bold">{selectedAlbum.name}</h2>
-                  <p className="text-gray-400">{selectedAlbum.artists[0].name}</p>
-                  <button
-                    onClick={() => setSelectedAlbum(null)}
-                    className="mt-2 text-sm text-purple-400 hover:text-purple-300"
-                  >
-                    ← Back to search
-                  </button>
-                </div>
-              </div>
-
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={tracks.map(track => track.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="space-y-4">
-                    {tracks.map((track, index) => (
-                      <SortableTrack
-                        key={track.id}
-                        track={track}
-                        index={index}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
-            </div>
+          {view === 'artists' && artists.length > 0 && (
+            <ArtistList artists={artists} onSelect={handleArtistSelect} />
           )}
         </div>
+
+        {tracks.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" ref={trackSectionRef}>
+            <div className="lg:sticky lg:top-8">
+              <Rankings
+                tracks={playlist}
+                onAdd={handleAddToPlaylist}
+                onRemove={handleRemoveFromPlaylist}
+                onReorder={handleReorderPlaylist}
+                onNext={handleNext}
+              />
+            </div>
+            <div>
+              <TrackList
+                tracks={tracks}
+                playlist={playlist}
+                onAdd={handleAddToPlaylist}
+                onRemove={handleRemoveFromPlaylist}
+              />
+            </div>
+          </div>
+        )}
       </div>
-
-      <footer className="bg-gray-900 border-t border-gray-800 py-6">
-        <div className="container mx-auto px-4 flex items-center justify-between">
-          <p className="text-gray-400">
-            <a
-              href="https://github.com/nihrg"
-              className="hover:text-purple-400 transition-colors"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Nihar Guha
-            </a>{" "}
-            © 2025
-          </p>
-          <a
-            href="https://github.com/nihrg/rankify"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-2 text-gray-400 hover:text-purple-400 transition-colors"
-          >
-            <Github className="w-5 h-5" />
-            <span>Source Code</span>
-          </a>
-        </div>
-      </footer>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <Routes>
+        <Route path="/" element={<Search />} />
+        <Route path="/rankings" element={<RankingsPage />} />
+      </Routes>
+    </DndProvider>
   );
 }
 
