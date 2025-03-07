@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import { Disc3, Users } from 'lucide-react';
+import { Disc3, Users, Github } from 'lucide-react';
 import SearchBar from './components/SearchBar';
 import AlbumList from './components/AlbumList';
 import ArtistList from './components/ArtistList';
@@ -154,6 +154,24 @@ function Search() {
           </div>
         )}
       </div>
+      <footer className="py-4 mt-auto border-t border-white/10">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center">
+            <span className="text-white/40 text-sm">
+              Rankify © 2025
+            </span>
+            <a
+              href="https://github.com/nihrg/rankify"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center text-white/40 hover:text-white/60 transition-colors group"
+            >
+              <Github size={14} className="mr-1.5" />
+              <span className="text-sm">Source Code</span>
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

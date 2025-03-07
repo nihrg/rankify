@@ -1,6 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Music2, Disc3, Edit2 } from 'lucide-react';
+import { ArrowLeft, Download, Music2, Disc3, Edit2, Github } from 'lucide-react';
 import { toPng } from 'html-to-image';
 
 interface Track {
@@ -16,6 +16,10 @@ const Rankings = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [title, setTitle] = useState('My Rankings');
   const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleExport = async () => {
     if (contentRef.current) {
@@ -130,6 +134,24 @@ const Rankings = () => {
             </div>
           </div>
         </div>
+        <footer className="py-4 mt-auto border-t border-white/10">
+          <div className="container mx-auto px-4">
+            <div className="flex justify-between items-center">
+              <span className="text-white/40 text-sm">
+                Rankify © 2025
+              </span>
+              <a
+                href="https://github.com/nihrg/rankify"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center text-white/40 hover:text-white/60 transition-colors group"
+              >
+                <Github size={14} className="mr-1.5" />
+                <span className="text-sm">Source Code</span>
+              </a>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );
