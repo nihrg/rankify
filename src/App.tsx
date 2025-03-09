@@ -39,20 +39,25 @@ function Search() {
     setTracks([]);
   };
 
+  const scrollToTracks = () => {
+    if (trackSectionRef.current) {
+      const yOffset = -50;
+      const element = trackSectionRef.current;
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  };
+
   const handleAlbumSelect = async (album: any) => {
     const trackResults = await getAlbumTracks(album.id);
     setTracks(trackResults);
-    setTimeout(() => {
-      trackSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+    setTimeout(scrollToTracks, 100);
   };
 
   const handleArtistSelect = async (artist: any) => {
     const trackResults = await getArtistTopTracks(artist.id);
     setTracks(trackResults);
-    setTimeout(() => {
-      trackSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+    setTimeout(scrollToTracks, 100);
   };
 
   const handleAddToPlaylist = (track: any) => {
