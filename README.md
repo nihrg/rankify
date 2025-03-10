@@ -1,14 +1,16 @@
 <div align="center">
-  <h1>🎵 Rankify</h1>
-  <p>Create, customize, and share your ultimate music rankings</p>
+ <img src="./public/logo.png" width="100" height="100" alt="Rankify Logo">
+ <h1>🎵 Rankify</h1>
+ <p>Create, customize, and share your ultimate music rankings</p>
 
-  <p>
-    <a href="https://albumranker.netlify.app/">View Demo</a>
-    ·
-    <a href="https://github.com/nihrg/rankify/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/nihrg/rankify/issues">Request Feature</a>
-  </p>
+
+ <p>
+   <a href="https://albumranker.netlify.app/">View Demo</a>
+   ·
+   <a href="https://github.com/nihrg/rankify/issues">Report Bug</a>
+   ·
+   <a href="https://github.com/nihrg/rankify/issues">Request Feature</a>
+ </p>
 </div>
 
 ## ✨ Features
@@ -31,27 +33,27 @@
 ### Installation
 
 1. Clone the repository
-   ```sh
-   git clone https://github.com/nihrg/rankify.git
-   cd rankify
-   ```
+  ```sh
+  git clone https://github.com/nihrg/rankify.git
+  cd rankify
+  ```
 
 2. Install dependencies
-   ```sh
-   npm install
-   ```
+  ```sh
+  npm install
+  ```
 
 3. Create a `.env` file in the root directory with your Spotify API credentials:
-   ```env
-   VITE_SPOTIFY_CLIENT_ID=your_client_id
-   VITE_SPOTIFY_CLIENT_SECRET=your_client_secret
-   VITE_SPOTIFY_REDIRECT_URI=http://localhost:5173/callback
-   ```
+  ```env
+  VITE_SPOTIFY_CLIENT_ID=your_client_id
+  VITE_SPOTIFY_CLIENT_SECRET=your_client_secret
+  VITE_SPOTIFY_REDIRECT_URI=http://localhost:5173/callback
+  ```
 
 4. Start the development server
-   ```sh
-   npm run dev
-   ```
+  ```sh
+  npm run dev
+  ```
 
 ## 🛠️ Built With
 
