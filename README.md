@@ -1,40 +1,97 @@
 <div align="center">
-  <img src="./public/logo.png" width="100" height="100" alt="Rankify Logo">
-  <h1>Rankify 🎵</h1>
-  <p>A music ranking platform that lets users search for albums on Spotify and rank them from best to worst.</p>
-  <p>Play now 👉 <a href="https://albumranker.netlify.app/" target="_blank" rel="noreferrer">Rankify</a></p>
+  <h1>🎵 Rankify</h1>
+  <p>Create, customize, and share your ultimate music rankings</p>
+
+  <p>
+    <a href="https://albumranker.netlify.app/">View Demo</a>
+    ·
+    <a href="https://github.com/nihrg/rankify/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/nihrg/rankify/issues">Request Feature</a>
+  </p>
 </div>
 
-## About
-Rankify is a platform that allows users to rank their favorite songs from any album using a drag-and-drop interface. Whether you're debating the best song on a new release or ranking classic albums, Rankify helps you create and share personalized rankings. Built with React, TypeScript, Tailwind CSS, and DnD Kit.
+## ✨ Features
 
-## Features
-🎵 Search for albums using the Spotify API  
-🔀 Drag and drop tracks to create custom rankings  
-📱 Responsive design  
+- **🔍 Powerful Search**: Search through Spotify's vast library of albums and artists
+- **📱 Responsive Design**: Seamless experience across all devices
+- **🎨 Beautiful UI**: Modern, intuitive interface with smooth animations
+- **🔄 Drag & Drop**: Intuitive drag-and-drop interface for ranking tracks
+- **📸 Export Rankings**: Export your rankings as beautiful images to share
+- **🎯 Real-time Updates**: Instant updates as you modify your rankings
+- **🌈 Custom Styling**: Beautiful gradients and visual design for each ranking
 
-## Limitations
-- Rankify does not store user rankings permanently (considering future improvements for persistent rankings).  
-- Spotify API limitations may impact the availability of some albums or track previews.  
+## 🚀 Quick Start
 
-## Development
-### Getting Started
+### Prerequisites
 
-**Note:**
-- Requires Node.js 20 or later.
-- Install pnpm version 9 or later.
+- Node.js 20.0.0 or later
+- npm 10.0.0 or later
 
-Clone this repository:
-sh
-git clone https://github.com/yourusername/rankify.git
-cd rankify
+### Installation
 
+1. Clone the repository
+   ```sh
+   git clone https://github.com/nihrg/rankify.git
+   cd rankify
+   ```
 
-Install dependencies:
-sh
-pnpm install
+2. Install dependencies
+   ```sh
+   npm install
+   ```
 
+3. Create a `.env` file in the root directory with your Spotify API credentials:
+   ```env
+   VITE_SPOTIFY_CLIENT_ID=your_client_id
+   VITE_SPOTIFY_CLIENT_SECRET=your_client_secret
+   VITE_SPOTIFY_REDIRECT_URI=http://localhost:5173/callback
+   ```
 
-Start the development server:
-sh
-pnpm dev  # Runs on http://localhost:5173/
+4. Start the development server
+   ```sh
+   npm run dev
+   ```
+
+## 🛠️ Built With
+
+- [React](https://reactjs.org/) - UI Framework
+- [TypeScript](https://www.typescriptlang.org/) - Programming Language
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
+- [Vite](https://vitejs.dev/) - Build Tool
+- [React DnD](https://react-dnd.github.io/react-dnd/) - Drag and Drop
+- [Spotify Web API](https://developer.spotify.com/documentation/web-api/) - Music Data
+- [html-to-image](https://github.com/bubkoo/html-to-image) - Image Export
+- [Lucide React](https://lucide.dev/) - Icons
+
+## 📖 Usage
+
+1. **Search**: Enter an album or artist name in the search bar
+2. **Select**: Click on an album or artist to view their tracks
+3. **Rank**: Drag tracks to your ranking list in your preferred order
+4. **Customize**: Edit the title of your ranking
+5. **Export**: Download your ranking as an image to share
+
+## 🤝 Contributing
+
+Contributions make the open-source community an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📝 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+## 📫 Contact
+
+Project Link: [https://github.com/nihrg/rankify](https://github.com/nihrg/rankify)
+
+## 🙏 Acknowledgments
+
+- [Spotify Web API](https://developer.spotify.com/documentation/web-api/)
+- [Unsplash](https://unsplash.com/) for background images
+- [Lucide](https://lucide.dev/) for beautiful icons
