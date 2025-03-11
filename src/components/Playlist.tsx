@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useDrop, useDrag, XYCoord } from 'react-dnd';
-import { GripVertical, X, ArrowRight, ArrowUp } from 'lucide-react';
+import { GripVertical, X, ArrowRight, ArrowUp, Trash2 } from 'lucide-react';
 
 interface Track {
   id: string;
@@ -14,6 +14,7 @@ interface RankingsProps {
   onRemove: (track: Track) => void;
   onNext: () => void;
   onReorder: (dragIndex: number, hoverIndex: number) => void;
+  onClear: () => void;
 }
 
 interface DragItem {
@@ -112,6 +113,7 @@ const Rankings: React.FC<RankingsProps> = ({
   onRemove,
   onNext,
   onReorder,
+  onClear,
 }) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'track',
@@ -147,7 +149,18 @@ const Rankings: React.FC<RankingsProps> = ({
 
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white">Your Rankings</h2>
-        <span className="text-gray-400">({tracks.length} tracks)</span>
+        <div className="flex items-center gap-4">
+          <span className="text-gray-400">({tracks.length} tracks)</span>
+          {tracks.length > 0 && (
+            <button
+              onClick={onClear}
+              className="flex items-center text-gray-400 hover:text-red-400 transition-colors"
+              title="Clear all tracks"
+            >
+              <Trash2 size={20} />
+            </button>
+          )}
+        </div>
       </div>
 
       {tracks.length === 0 ? (

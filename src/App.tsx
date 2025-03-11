@@ -41,7 +41,7 @@ function Search() {
 
   const scrollToTracks = () => {
     if (trackSectionRef.current) {
-      const yOffset = -50;
+      const yOffset = -45;
       const element = trackSectionRef.current;
       const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
       window.scrollTo({ top: y, behavior: 'smooth' });
@@ -83,6 +83,10 @@ function Search() {
       newPlaylist.splice(hoverIndex, 0, draggedTrack);
       return newPlaylist;
     });
+  };
+
+  const handleClearPlaylist = () => {
+    setPlaylist([]);
   };
 
   const handleNext = () => {
@@ -146,6 +150,7 @@ function Search() {
                 onRemove={handleRemoveFromPlaylist}
                 onReorder={handleReorderPlaylist}
                 onNext={handleNext}
+                onClear={handleClearPlaylist}
               />
             </div>
             <div>
