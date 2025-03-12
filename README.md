@@ -1,6 +1,6 @@
 <div align="center">
- <img src="./public/logo.png" width="100" height="100" alt="Rankify Logo">
- <h1>🎵 Rankify</h1>
+ <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/music.svg" width="100" height="100" alt="Rankify Logo">
+ <h1>Rankify</h1>
  <p>Create, customize, and share your ultimate music rankings</p>
 
 
