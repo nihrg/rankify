@@ -57,7 +57,7 @@ const Rankings = () => {
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-8">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/search')}
               className="flex items-center text-gray-400 hover:text-white transition-colors"
             >
               <ArrowLeft size={20} className="mr-2" />
