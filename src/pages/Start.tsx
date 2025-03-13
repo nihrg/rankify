@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Music, Github } from 'lucide-react';
 import { motion, useAnimationControls } from 'framer-motion';
@@ -8,9 +8,18 @@ import { loginWithSpotify } from '../utils/spotify';
 const Start = () => {
   const navigate = useNavigate();
   const logoControls = useAnimationControls();
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    // Start the animation only after the component is mounted
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  useEffect(() => {
     logoControls.start({
       rotateY: 360,
       transition: {
@@ -37,18 +46,6 @@ const Start = () => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut"
-      }
-    }
-  };
-
-  const logoVariants = {
-    hidden: { scale: 0.8, opacity: 0 },
-    visible: {
-      scale: 1,
-      opacity: 1,
       transition: {
         duration: 0.5,
         ease: "easeOut"
@@ -97,18 +94,9 @@ const Start = () => {
       className="min-h-screen bg-[url('https://images.unsplash.com/photo-1614149162883-504ce4d13909?q=80&w=2070')] bg-cover bg-center bg-fixed overflow-hidden"
     >
       <motion.div 
-        className="absolute inset-0"
-        animate={{
-          backgroundPosition: ['0% 0%', '100% 100%'],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          repeatType: "reverse",
-          ease: "linear"
-        }}
+        className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(circle at center, rgba(139, 92, 246, 0.1) 0%, rgba(0, 0, 0, 0) 70%)',
+          background: `radial-gradient(circle 400px at ${mousePosition.x}px ${mousePosition.y}px, rgba(139, 92, 246, 0.15), transparent 80%)`,
         }}
       />
       <div className="min-h-screen backdrop-blur-xl bg-black/70 flex flex-col relative">
@@ -211,25 +199,31 @@ const Start = () => {
                 <SpotifyAuth onLogin={loginWithSpotify} />
               </motion.div>
 
-              <motion.div
-                variants={itemVariants}
-                className="relative w-full max-w-sm flex items-center justify-center"
-              >
+              <div className="relative w-full max-w-sm">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-600"></div>
+                  <div className="w-full border-t border-purple-500/20"></div>
                 </div>
-                <div className="relative px-4 bg-transparent">
-                  <span className="text-sm text-gray-400">or</span>
+                <div className="relative flex justify-center">
+                  <motion.span 
+                    className="px-4 bg-transparent text-purple-400/80 text-sm font-medium"
+                    whileHover={{ scale: 1.1 }}
+                    style={{
+                      background: 'linear-gradient(90deg, transparent, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.8) 80%, transparent)',
+                    }}
+                  >
+                    or continue with
+                  </motion.span>
                 </div>
-              </motion.div>
+              </div>
 
               <motion.button
                 variants={buttonVariants}
                 whileHover="hover"
                 whileTap="tap"
                 onClick={() => navigate('/search')}
-                className="px-8 py-4 bg-gray-800/80 text-gray-300 rounded-full text-lg font-semibold hover:bg-gray-700/80 transition-colors transform-gpu backdrop-blur-sm"
+                className="group relative px-8 py-4 bg-gray-800/80 text-gray-300 rounded-full text-lg font-semibold hover:text-white transition-colors transform-gpu backdrop-blur-sm overflow-hidden"
               >
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/10 to-purple-500/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
                 Continue without signing in
               </motion.button>
             </motion.div>
