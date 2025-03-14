@@ -3,7 +3,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Disc3, Users, Github, LogOut, ArrowLeft } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import SearchBar from './components/SearchBar';
 import AlbumList from './components/AlbumList';
 import ArtistList from './components/ArtistList';
@@ -25,7 +25,6 @@ function Search() {
   const [user, setUser] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isLoading, setIsLoading] = useState(false);
   const trackSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,7 +53,6 @@ function Search() {
   const handleSearch = async (query: string) => {
     try {
       setError(null);
-      setIsLoading(true);
       if (view === 'albums') {
         const albumResults = await searchAlbums(query);
         setAlbums(albumResults);
@@ -74,8 +72,6 @@ function Search() {
       setAlbums([]);
       setArtists([]);
       setTracks([]);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -176,24 +172,13 @@ function Search() {
   };
 
   const floatingAnimation = {
-    y: [-5, 5],
+    y: [-10, 10],
     transition: {
       duration: 2,
       repeat: Infinity,
       repeatType: "reverse",
       ease: "easeInOut"
     }
-  };
-
-  const loadingVariants = {
-    start: {
-      scale: 0.8,
-      opacity: 0.5,
-    },
-    end: {
-      scale: 1,
-      opacity: 1,
-    },
   };
 
   return (
@@ -242,7 +227,7 @@ function Search() {
               </button>
             </div>
             <motion.div 
-              className="flex-1 flex items-center justify-center gap-4 mt-8"
+              className="flex-1 flex items-center justify-center gap-4"
               animate={floatingAnimation}
             >
               <Logo size="lg" />
@@ -312,37 +297,14 @@ function Search() {
             <SearchBar onSearch={handleSearch} view={view} />
           </motion.div>
 
-          <AnimatePresence mode="wait">
-            {isLoading ? (
-              <motion.div
-                key="loading"
-                initial="start"
-                animate="end"
-                exit="start"
-                variants={loadingVariants}
-                transition={{ duration: 0.5, repeat: Infinity, repeatType: "reverse" }}
-                className="flex justify-center items-center py-12"
-              >
-                <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
-              </motion.div>
-            ) : (
-              <motion.div 
-                key="content"
-                className="mb-12"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                {view === 'albums' && albums.length > 0 && (
-                  <AlbumList albums={albums} onSelect={handleAlbumSelect} />
-                )}
-                {view === 'artists' && artists.length > 0 && (
-                  <ArtistList artists={artists} onSelect={handleArtistSelect} />
-                )}
-              </motion.div>
+          <motion.div className="mb-12" variants={itemVariants}>
+            {view === 'albums' && albums.length > 0 && (
+              <AlbumList albums={albums} onSelect={handleAlbumSelect} />
             )}
-          </AnimatePresence>
+            {view === 'artists' && artists.length > 0 && (
+              <ArtistList artists={artists} onSelect={handleArtistSelect} />
+            )}
+          </motion.div>
 
           {tracks.length > 0 && (
             <motion.div 

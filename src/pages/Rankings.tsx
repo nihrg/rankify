@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Music2, Disc3, Edit2, Github } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toPng } from 'html-to-image';
 
 interface Track {
@@ -51,30 +52,83 @@ const Rankings = () => {
     'from-pink-500 to-orange-500',
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 12
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[url('https://images.unsplash.com/photo-1614149162883-504ce4d13909?q=80&w=2070')] bg-cover bg-center bg-fixed bg-black bg-opacity-50">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen bg-[url('https://images.unsplash.com/photo-1614149162883-504ce4d13909?q=80&w=2070')] bg-cover bg-center bg-fixed bg-black bg-opacity-50"
+    >
       <div className="min-h-screen backdrop-blur-xl bg-black/70">
         <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-between items-center mb-8">
-            <button
+          <motion.div 
+            className="flex justify-between items-center mb-8"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.button
               onClick={() => navigate('/search')}
-              className="flex items-center text-gray-400 hover:text-white transition-colors"
+              className="flex items-center text-gray-400 hover:text-white transition-colors group"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <ArrowLeft size={20} className="mr-2" />
+              <ArrowLeft size={20} className="mr-2 transition-transform group-hover:-translate-x-2" />
               Back to Search
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={handleExport}
               className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <Download size={20} className="mr-2" />
               Export Image
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
 
-          <div ref={contentRef} className="bg-gray-900/90 rounded-3xl p-8 backdrop-blur-sm">
-            <div className="text-center mb-12">
-              <div className="flex items-center justify-center mb-4">
+          <motion.div 
+            ref={contentRef} 
+            className="bg-gray-900/90 rounded-3xl p-8 backdrop-blur-sm"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <motion.div 
+              className="text-center mb-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <motion.div 
+                className="flex items-center justify-center mb-4"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.4 }}
+              >
                 <Disc3 size={40} className="text-purple-500 mr-3" />
                 <div className="relative group">
                   {isEditing ? (
@@ -90,9 +144,12 @@ const Rankings = () => {
                     </form>
                   ) : (
                     <>
-                      <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 text-transparent bg-clip-text">
+                      <motion.h1 
+                        className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 text-transparent bg-clip-text"
+                        whileHover={{ scale: 1.02 }}
+                      >
                         {title}
-                      </h1>
+                      </motion.h1>
                       <button
                         onClick={() => setIsEditing(true)}
                         className="absolute -right-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -102,17 +159,32 @@ const Rankings = () => {
                     </>
                   )}
                 </div>
-              </div>
-              <p className="text-gray-400 text-lg">
+              </motion.div>
+              <motion.p 
+                className="text-gray-400 text-lg"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
                 {tracks.length} tracks ranked with Rankify
-              </p>
-            </div>
+              </motion.p>
+            </motion.div>
 
-            <div className="max-w-3xl mx-auto space-y-4">
+            <motion.div 
+              className="max-w-3xl mx-auto space-y-4"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
               {tracks.map((track: Track, index: number) => (
-                <div
+                <motion.div
                   key={`${track.id}-${index}`}
-                  className={`flex items-center p-6 bg-gradient-to-r ${gradients[index % gradients.length]} rounded-2xl transform transition-transform hover:scale-[1.02]`}
+                  variants={itemVariants}
+                  whileHover={{ 
+                    scale: 1.02,
+                    transition: { type: "spring", stiffness: 400, damping: 10 }
+                  }}
+                  className={`flex items-center p-6 bg-gradient-to-r ${gradients[index % gradients.length]} rounded-2xl`}
                 >
                   <span className="text-4xl font-bold text-white/90 mr-6 font-mono">
                     {(index + 1).toString().padStart(2, '0')}
@@ -124,17 +196,27 @@ const Rankings = () => {
                       {track.artists.map(a => a.name).join(', ')}
                     </p>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
 
-            <div className="text-center mt-12 text-gray-400">
+            <motion.div 
+              className="text-center mt-12 text-gray-400"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
               Made with{' '}
               <span className="text-purple-400 font-semibold">Rankify</span>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
-        <footer className="py-4 mt-auto border-t border-white/10">
+        <motion.footer 
+          className="py-4 mt-auto border-t border-white/10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+        >
           <div className="container mx-auto px-4">
             <div className="flex justify-between items-center">
               <span className="text-white/40 text-sm">
@@ -151,9 +233,9 @@ const Rankings = () => {
               </a>
             </div>
           </div>
-        </footer>
+        </motion.footer>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
