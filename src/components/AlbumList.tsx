@@ -13,9 +13,10 @@ interface Album {
 interface AlbumListProps {
   albums: Album[];
   onSelect: (album: Album) => void;
+  isLoading: boolean;
 }
 
-const AlbumList: React.FC<AlbumListProps> = ({ albums, onSelect }) => {
+const AlbumList: React.FC<AlbumListProps> = ({ albums, onSelect, isLoading }) => {
   const getYear = (date: string) => {
     return date.split('-')[0];
   };
@@ -48,6 +49,9 @@ const AlbumList: React.FC<AlbumListProps> = ({ albums, onSelect }) => {
     }
   };
 
+  // Only show first 8 albums
+  const displayedAlbums = albums.slice(0, 8);
+
   return (
     <motion.div 
       className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
@@ -55,17 +59,19 @@ const AlbumList: React.FC<AlbumListProps> = ({ albums, onSelect }) => {
       initial="hidden"
       animate="visible"
     >
-      {albums.map((album) => (
+      {displayedAlbums.map((album) => (
         <motion.div
           key={album.id}
-          onClick={() => onSelect(album)}
-          className="bg-gray-800/90 backdrop-blur-sm rounded-lg p-4 cursor-pointer hover:bg-gray-700/90 transition-colors duration-300 group"
+          onClick={() => !isLoading && onSelect(album)}
+          className={`bg-gray-800/90 backdrop-blur-sm rounded-lg p-4 cursor-pointer transition-colors duration-300 group ${
+            isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700/90'
+          }`}
           variants={albumVariants}
-          whileHover={{ 
+          whileHover={!isLoading ? { 
             scale: 1.05,
             transition: { type: "spring", stiffness: 400, damping: 10 }
-          }}
-          whileTap={{ scale: 0.95 }}
+          } : {}}
+          whileTap={!isLoading ? { scale: 0.95 } : {}}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}

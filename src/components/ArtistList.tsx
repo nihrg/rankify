@@ -12,9 +12,10 @@ interface Artist {
 interface ArtistListProps {
   artists: Artist[];
   onSelect: (artist: Artist) => void;
+  isLoading: boolean;
 }
 
-const ArtistList: React.FC<ArtistListProps> = ({ artists, onSelect }) => {
+const ArtistList: React.FC<ArtistListProps> = ({ artists, onSelect, isLoading }) => {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -43,6 +44,9 @@ const ArtistList: React.FC<ArtistListProps> = ({ artists, onSelect }) => {
     }
   };
 
+  // Only show first 8 artists
+  const displayedArtists = artists.slice(0, 8);
+
   return (
     <motion.div 
       className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
@@ -50,17 +54,19 @@ const ArtistList: React.FC<ArtistListProps> = ({ artists, onSelect }) => {
       initial="hidden"
       animate="visible"
     >
-      {artists.map((artist) => (
+      {displayedArtists.map((artist) => (
         <motion.div
           key={artist.id}
-          onClick={() => onSelect(artist)}
-          className="bg-gray-800/90 backdrop-blur-sm rounded-lg p-4 cursor-pointer hover:bg-gray-700/90 transition-colors duration-300 group"
+          onClick={() => !isLoading && onSelect(artist)}
+          className={`bg-gray-800/90 backdrop-blur-sm rounded-lg p-4 cursor-pointer transition-colors duration-300 group ${
+            isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700/90'
+          }`}
           variants={artistVariants}
-          whileHover={{ 
+          whileHover={!isLoading ? { 
             scale: 1.05,
             transition: { type: "spring", stiffness: 400, damping: 10 }
-          }}
-          whileTap={{ scale: 0.95 }}
+          } : {}}
+          whileTap={!isLoading ? { scale: 0.95 } : {}}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}

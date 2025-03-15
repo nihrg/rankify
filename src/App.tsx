@@ -25,7 +25,9 @@ function Search() {
   const [user, setUser] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isLoading, setIsLoading] = useState(false);
   const trackSectionRef = useRef<HTMLDivElement>(null);
+  const loadingTimeout = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -42,6 +44,14 @@ function Search() {
       setUser(profile);
     };
     checkAuth();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (loadingTimeout.current) {
+        clearTimeout(loadingTimeout.current);
+      }
+    };
   }, []);
 
   const handleLogout = () => {
@@ -85,8 +95,13 @@ function Search() {
   };
 
   const handleAlbumSelect = async (album: any) => {
+    if (isLoading) return;
+    
     try {
       setError(null);
+      setIsLoading(true);
+      setTracks([]);
+      
       const trackResults = await getAlbumTracks(album.id);
       setTracks(trackResults);
       setTimeout(scrollToTracks, 100);
@@ -97,12 +112,22 @@ function Search() {
         setError('An error occurred while loading tracks. Please try again.');
       }
       setTracks([]);
+    } finally {
+      // Add a minimum loading time to prevent flickering
+      loadingTimeout.current = setTimeout(() => {
+        setIsLoading(false);
+      }, 500);
     }
   };
 
   const handleArtistSelect = async (artist: any) => {
+    if (isLoading) return;
+    
     try {
       setError(null);
+      setIsLoading(true);
+      setTracks([]);
+      
       const trackResults = await getArtistTopTracks(artist.id);
       setTracks(trackResults);
       setTimeout(scrollToTracks, 100);
@@ -113,6 +138,11 @@ function Search() {
         setError('An error occurred while loading tracks. Please try again.');
       }
       setTracks([]);
+    } finally {
+      // Add a minimum loading time to prevent flickering
+      loadingTimeout.current = setTimeout(() => {
+        setIsLoading(false);
+      }, 500);
     }
   };
 
@@ -216,8 +246,8 @@ function Search() {
           animate="visible"
           variants={containerVariants}
         >
-          <motion.div className="flex justify-between items-center mb-12" variants={itemVariants}>
-            <div className="flex-1">
+          <motion.div className="flex flex-col gap-8 mb-12" variants={itemVariants}>
+            <div className="flex justify-between items-center">
               <button
                 onClick={() => navigate('/')}
                 className="flex items-center text-gray-400 hover:text-white transition-colors group"
@@ -225,17 +255,6 @@ function Search() {
                 <ArrowLeft className="mr-2 group-hover:scale-110 transition-transform" size={24} />
                 <span>Back to Sign In</span>
               </button>
-            </div>
-            <motion.div 
-              className="flex-1 flex items-center justify-center gap-4"
-              animate={floatingAnimation}
-            >
-              <Logo size="lg" />
-              <h1 className="text-6xl font-bold text-center bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 text-transparent bg-clip-text">
-                Rankify
-              </h1>
-            </motion.div>
-            <div className="flex-1 flex justify-end">
               {user && (
                 <div className="flex items-center gap-4">
                   <span className="text-gray-400">
@@ -251,6 +270,16 @@ function Search() {
                 </div>
               )}
             </div>
+            
+            <motion.div 
+              className="flex items-center justify-center gap-4"
+              animate={floatingAnimation}
+            >
+              <Logo size="lg" />
+              <h1 className="text-6xl font-bold text-center bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 text-transparent bg-clip-text">
+                Rankify
+              </h1>
+            </motion.div>
           </motion.div>
 
           {error && (
@@ -299,14 +328,14 @@ function Search() {
 
           <motion.div className="mb-12" variants={itemVariants}>
             {view === 'albums' && albums.length > 0 && (
-              <AlbumList albums={albums} onSelect={handleAlbumSelect} />
+              <AlbumList albums={albums} onSelect={handleAlbumSelect} isLoading={isLoading} />
             )}
             {view === 'artists' && artists.length > 0 && (
-              <ArtistList artists={artists} onSelect={handleArtistSelect} />
+              <ArtistList artists={artists} onSelect={handleArtistSelect} isLoading={isLoading} />
             )}
           </motion.div>
 
-          {tracks.length > 0 && (
+          {(tracks.length > 0 || isLoading) && (
             <motion.div 
               className="grid grid-cols-1 lg:grid-cols-2 gap-8" 
               ref={trackSectionRef}
@@ -323,12 +352,18 @@ function Search() {
                 />
               </div>
               <div>
-                <TrackList
-                  tracks={tracks}
-                  playlist={playlist}
-                  onAdd={handleAddToPlaylist}
-                  onRemove={handleRemoveFromPlaylist}
-                />
+                {isLoading ? (
+                  <div className="flex items-center justify-center p-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent"></div>
+                  </div>
+                ) : (
+                  <TrackList
+                    tracks={tracks}
+                    playlist={playlist}
+                    onAdd={handleAddToPlaylist}
+                    onRemove={handleRemoveFromPlaylist}
+                  />
+                )}
               </div>
             </motion.div>
           )}

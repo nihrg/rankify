@@ -4,11 +4,9 @@ const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
 const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
 
-export const getAccessToken = async () => {
+// Get client credentials token for non-user-specific operations
+export const getClientCredentialsToken = async () => {
   try {
-    const token = localStorage.getItem('spotify_token');
-    if (token) return token;
-
     const params = new URLSearchParams({
       grant_type: 'client_credentials',
       client_id: CLIENT_ID,
@@ -27,16 +25,32 @@ export const getAccessToken = async () => {
       throw new Error('Invalid token response');
     }
 
-    const accessToken = response.data.access_token;
-    localStorage.setItem('spotify_token', accessToken);
-    return accessToken;
+    return response.data.access_token;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('Error getting client credentials token:', error.message);
+    } else {
+      console.error('Error getting client credentials token:', error);
+    }
+    throw new Error('Authentication failed');
+  }
+};
+
+// Get access token - either from localStorage (for user auth) or client credentials
+export const getAccessToken = async () => {
+  try {
+    // First try to get user token from localStorage
+    const userToken = localStorage.getItem('spotify_token');
+    if (userToken) return userToken;
+
+    // If no user token, fall back to client credentials
+    return await getClientCredentialsToken();
   } catch (error) {
     if (error instanceof Error) {
       console.error('Error getting access token:', error.message);
     } else {
       console.error('Error getting access token:', error);
     }
-    localStorage.removeItem('spotify_token');
     throw new Error('Authentication required');
   }
 };
@@ -103,6 +117,7 @@ interface SpotifyUser {
 export const getUserProfile = async (): Promise<SpotifyUser | null> => {
   try {
     const token = localStorage.getItem('spotify_token');
+    // Only attempt to get user profile if we have a user token
     if (!token) return null;
 
     const response = await axios.get('https://api.spotify.com/v1/me', {
@@ -138,7 +153,10 @@ export const getUserProfile = async (): Promise<SpotifyUser | null> => {
     } else {
       console.error('Error fetching user profile:', error);
     }
-    localStorage.removeItem('spotify_token');
+    // Only remove the token if it's an authentication error
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      localStorage.removeItem('spotify_token');
+    }
     return null;
   }
 };
@@ -149,7 +167,7 @@ export const searchAlbums = async (query: string) => {
     if (!token) throw new Error('Authentication required');
     
     const response = await axios.get(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=album`,
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=album&limit=50`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data.albums.items;
@@ -169,7 +187,7 @@ export const searchArtists = async (query: string) => {
     if (!token) throw new Error('Authentication required');
 
     const response = await axios.get(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist`,
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist&limit=50`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data.artists.items;
@@ -189,7 +207,7 @@ export const searchTracks = async (query: string) => {
     if (!token) throw new Error('Authentication required');
 
     const response = await axios.get(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track`,
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=50`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data.tracks.items;
@@ -208,18 +226,66 @@ export const getArtistTopTracks = async (artistId: string) => {
     const token = await getAccessToken();
     if (!token) throw new Error('Authentication required');
 
+    // Get the artist's top tracks
     const response = await axios.get(
       `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    return response.data.tracks;
+
+    // Get additional tracks from the artist's albums
+    const albumsResponse = await axios.get(
+      `https://api.spotify.com/v1/artists/${artistId}/albums?limit=50&include_groups=album,single`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    const albumIds = albumsResponse.data.items.map((album: any) => album.id);
+    
+    // Use a Map to store tracks by their ID to prevent duplicates
+    const tracksMap = new Map();
+    
+    // Add top tracks to the map
+    response.data.tracks.forEach((track: any) => {
+      tracksMap.set(track.id, track);
+    });
+
+    // Get tracks from each album
+    await Promise.all(
+      chunk(albumIds, 20).map(async (ids) => {
+        const albumsTracksResponse = await axios.get(
+          `https://api.spotify.com/v1/albums?ids=${ids.join(',')}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        albumsTracksResponse.data.albums.forEach((album: any) => {
+          album.tracks.items.forEach((track: any) => {
+            // Only add the track if it's not already in the map
+            if (!tracksMap.has(track.id)) {
+              // Add album data to track
+              track.album = {
+                id: album.id,
+                name: album.name,
+                images: album.images
+              };
+              tracksMap.set(track.id, track);
+            }
+          });
+        });
+      })
+    );
+
+    // Convert Map values to array and sort by popularity
+    const tracksArray = Array.from(tracksMap.values());
+    return tracksArray
+      .sort((a: any, b: any) => b.popularity - a.popularity)
+      .slice(0, 50);
+
   } catch (error) {
     if (error instanceof Error) {
-      console.error('Error fetching artist top tracks:', error.message);
+      console.error('Error fetching artist tracks:', error.message);
     } else {
-      console.error('Error fetching artist top tracks:', error);
+      console.error('Error fetching artist tracks:', error);
     }
-    throw new Error('Failed to fetch artist top tracks');
+    throw new Error('Failed to fetch artist tracks');
   }
 };
 
@@ -228,11 +294,40 @@ export const getAlbumTracks = async (albumId: string) => {
     const token = await getAccessToken();
     if (!token) throw new Error('Authentication required');
 
-    const response = await axios.get(
-      `https://api.spotify.com/v1/albums/${albumId}/tracks`,
-      { headers: { Authorization: `Bearer ${token}` } }
+    // Get all tracks with pagination
+    let allTracks = [];
+    let offset = 0;
+    const limit = 50;
+    
+    while (true) {
+      const response = await axios.get(
+        `https://api.spotify.com/v1/albums/${albumId}/tracks?limit=${limit}&offset=${offset}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      allTracks = [...allTracks, ...response.data.items];
+      
+      if (response.data.items.length < limit) {
+        break;
+      }
+      
+      offset += limit;
+    }
+
+    // Get full track details including popularity
+    const trackIds = allTracks.map((track: any) => track.id);
+    const detailedTracks = await Promise.all(
+      // Split into chunks of 50 (Spotify API limit)
+      chunk(trackIds, 50).map(async (ids) => {
+        const response = await axios.get(
+          `https://api.spotify.com/v1/tracks?ids=${ids.join(',')}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        return response.data.tracks;
+      })
     );
-    return response.data.items;
+
+    return detailedTracks.flat();
   } catch (error) {
     if (error instanceof Error) {
       console.error('Error fetching album tracks:', error.message);
@@ -242,6 +337,15 @@ export const getAlbumTracks = async (albumId: string) => {
     throw new Error('Failed to fetch album tracks');
   }
 };
+
+// Helper function to chunk array into smaller arrays
+function chunk<T>(array: T[], size: number): T[][] {
+  const chunked: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunked.push(array.slice(i, i + size));
+  }
+  return chunked;
+}
 
 export const savePlaylistToSpotify = async (name: string, trackUris: string[]) => {
   try {
