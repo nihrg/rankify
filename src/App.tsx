@@ -26,8 +26,9 @@ function Search() {
   const [error, setError] = useState<string | null>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isLoading, setIsLoading] = useState(false);
-  const trackSectionRef = useRef<HTMLDivElement>(null);
+  const [selectedArtistId, setSelectedArtistId] = useState<string | null>(null);
   const loadingTimeout = useRef<NodeJS.Timeout>();
+  const trackListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -35,7 +36,12 @@ function Search() {
     };
 
     window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (loadingTimeout.current) {
+        clearTimeout(loadingTimeout.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -44,14 +50,6 @@ function Search() {
       setUser(profile);
     };
     checkAuth();
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (loadingTimeout.current) {
-        clearTimeout(loadingTimeout.current);
-      }
-    };
   }, []);
 
   const handleLogout = () => {
@@ -73,6 +71,7 @@ function Search() {
         setAlbums([]);
       }
       setTracks([]);
+      setSelectedArtistId(null);
     } catch (err) {
       if (err instanceof Error && err.message === 'Authentication required') {
         setError('Please sign in with Spotify to search for music');
@@ -82,15 +81,7 @@ function Search() {
       setAlbums([]);
       setArtists([]);
       setTracks([]);
-    }
-  };
-
-  const scrollToTracks = () => {
-    if (trackSectionRef.current) {
-      const yOffset = -45;
-      const element = trackSectionRef.current;
-      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: 'smooth' });
+      setSelectedArtistId(null);
     }
   };
 
@@ -101,10 +92,10 @@ function Search() {
       setError(null);
       setIsLoading(true);
       setTracks([]);
+      setSelectedArtistId(null);
       
       const trackResults = await getAlbumTracks(album.id);
       setTracks(trackResults);
-      setTimeout(scrollToTracks, 100);
     } catch (err) {
       if (err instanceof Error && err.message === 'Authentication required') {
         setError('Please sign in with Spotify to view tracks');
@@ -113,7 +104,6 @@ function Search() {
       }
       setTracks([]);
     } finally {
-      // Add a minimum loading time to prevent flickering
       loadingTimeout.current = setTimeout(() => {
         setIsLoading(false);
       }, 500);
@@ -127,10 +117,10 @@ function Search() {
       setError(null);
       setIsLoading(true);
       setTracks([]);
+      setSelectedArtistId(artist.id);
       
       const trackResults = await getArtistTopTracks(artist.id);
       setTracks(trackResults);
-      setTimeout(scrollToTracks, 100);
     } catch (err) {
       if (err instanceof Error && err.message === 'Authentication required') {
         setError('Please sign in with Spotify to view tracks');
@@ -138,8 +128,8 @@ function Search() {
         setError('An error occurred while loading tracks. Please try again.');
       }
       setTracks([]);
+      setSelectedArtistId(null);
     } finally {
-      // Add a minimum loading time to prevent flickering
       loadingTimeout.current = setTimeout(() => {
         setIsLoading(false);
       }, 500);
@@ -337,8 +327,8 @@ function Search() {
 
           {(tracks.length > 0 || isLoading) && (
             <motion.div 
-              className="grid grid-cols-1 lg:grid-cols-2 gap-8" 
-              ref={trackSectionRef}
+              ref={trackListRef}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-8"
               variants={itemVariants}
             >
               <div className="lg:sticky lg:top-8">
@@ -362,6 +352,7 @@ function Search() {
                     playlist={playlist}
                     onAdd={handleAddToPlaylist}
                     onRemove={handleRemoveFromPlaylist}
+                    artistId={selectedArtistId}
                   />
                 )}
               </div>

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
-import { Music, Plus } from 'lucide-react';
+import { Music, Plus, Search } from 'lucide-react';
+import { searchTracks } from '../utils/spotify';
 
 interface Track {
   id: string;
@@ -15,6 +16,7 @@ interface TrackListProps {
   playlist?: Track[];
   onAdd?: (track: Track) => void;
   onRemove?: (track: Track) => void;
+  artistId?: string;
 }
 
 const TrackItem: React.FC<{ 
@@ -88,9 +90,54 @@ const TrackItem: React.FC<{
   );
 };
 
-const TrackList: React.FC<TrackListProps> = ({ tracks, playlist = [], onAdd, onRemove }) => {
+const TrackList: React.FC<TrackListProps> = ({ tracks, playlist = [], onAdd, onRemove, artistId }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Track[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const trackListRef = useRef<HTMLDivElement>(null);
+  const scrollTimeout = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    if (tracks.length > 0 && trackListRef.current) {
+      if (scrollTimeout.current) {
+        clearTimeout(scrollTimeout.current);
+      }
+
+      scrollTimeout.current = setTimeout(() => {
+        if (trackListRef.current) {
+          const yOffset = -140;
+          const y = trackListRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }, 100);
+    }
+
+    return () => {
+      if (scrollTimeout.current) {
+        clearTimeout(scrollTimeout.current);
+      }
+    };
+  }, [tracks]);
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim() || !artistId) return;
+
+    setIsSearching(true);
+    try {
+      const results = await searchTracks(`${searchQuery} artist:${tracks[0]?.artists[0]?.name}`);
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Error searching tracks:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const displayedTracks = searchQuery ? searchResults : tracks;
+
   const handleSelectAll = () => {
-    const unselectedTracks = tracks.filter(track => !playlist.some(p => p.id === track.id));
+    const unselectedTracks = displayedTracks.filter(track => !playlist.some(p => p.id === track.id));
     unselectedTracks.forEach(track => onAdd?.(track));
   };
 
@@ -106,16 +153,44 @@ const TrackList: React.FC<TrackListProps> = ({ tracks, playlist = [], onAdd, onR
           Select All
         </button>
       </div>
-      <div className="space-y-2">
-        {tracks.map((track) => (
-          <TrackItem
-            key={track.id}
-            track={track}
-            isInPlaylist={playlist.some((t) => t.id === track.id)}
-            onAdd={onAdd}
-            onRemove={onRemove}
-          />
-        ))}
+
+      {artistId && (
+        <form onSubmit={handleSearch} className="mb-4">
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search more songs by this artist..."
+              className="w-full px-4 py-2 bg-gray-800/80 backdrop-blur-sm rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            />
+            <button
+              type="submit"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-purple-400 disabled:opacity-50"
+              disabled={!searchQuery.trim() || isSearching}
+            >
+              <Search size={20} />
+            </button>
+          </div>
+        </form>
+      )}
+
+      <div ref={trackListRef} className="space-y-2">
+        {isSearching ? (
+          <div className="flex items-center justify-center p-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-4 border-purple-500 border-t-transparent"></div>
+          </div>
+        ) : (
+          displayedTracks.map((track) => (
+            <TrackItem
+              key={track.id}
+              track={track}
+              isInPlaylist={playlist.some((t) => t.id === track.id)}
+              onAdd={onAdd}
+              onRemove={onRemove}
+            />
+          ))
+        )}
       </div>
     </div>
   );

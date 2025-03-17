@@ -232,53 +232,8 @@ export const getArtistTopTracks = async (artistId: string) => {
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
-    // Get additional tracks from the artist's albums
-    const albumsResponse = await axios.get(
-      `https://api.spotify.com/v1/artists/${artistId}/albums?limit=50&include_groups=album,single`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    const albumIds = albumsResponse.data.items.map((album: any) => album.id);
-    
-    // Use a Map to store tracks by their ID to prevent duplicates
-    const tracksMap = new Map();
-    
-    // Add top tracks to the map
-    response.data.tracks.forEach((track: any) => {
-      tracksMap.set(track.id, track);
-    });
-
-    // Get tracks from each album
-    await Promise.all(
-      chunk(albumIds, 20).map(async (ids) => {
-        const albumsTracksResponse = await axios.get(
-          `https://api.spotify.com/v1/albums?ids=${ids.join(',')}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        albumsTracksResponse.data.albums.forEach((album: any) => {
-          album.tracks.items.forEach((track: any) => {
-            // Only add the track if it's not already in the map
-            if (!tracksMap.has(track.id)) {
-              // Add album data to track
-              track.album = {
-                id: album.id,
-                name: album.name,
-                images: album.images
-              };
-              tracksMap.set(track.id, track);
-            }
-          });
-        });
-      })
-    );
-
-    // Convert Map values to array and sort by popularity
-    const tracksArray = Array.from(tracksMap.values());
-    return tracksArray
-      .sort((a: any, b: any) => b.popularity - a.popularity)
-      .slice(0, 50);
-
+    // Return only the first 10 tracks
+    return response.data.tracks.slice(0, 10);
   } catch (error) {
     if (error instanceof Error) {
       console.error('Error fetching artist tracks:', error.message);
