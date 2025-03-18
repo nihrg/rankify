@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
-  view?: 'albums' | 'artists';
+  view?: 'albums' | 'artists' | 'songs';
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ onSearch, view = 'albums' }) => {
@@ -14,6 +14,19 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, view = 'albums' }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) onSearch(query);
+  };
+
+  const getPlaceholder = () => {
+    switch (view) {
+      case 'albums':
+        return 'Search for an album...';
+      case 'artists':
+        return 'Search for an artist...';
+      case 'songs':
+        return 'Search for a song...';
+      default:
+        return 'Search...';
+    }
   };
 
   return (
@@ -29,7 +42,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, view = 'albums' }) => {
         />
         <input
           type="text"
-          placeholder={`Search for ${view === 'albums' ? 'an album' : 'an artist'}...`}
+          placeholder={getPlaceholder()}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}

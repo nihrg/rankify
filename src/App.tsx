@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import { Disc3, Users, Github, LogOut, ArrowLeft } from 'lucide-react';
+import { Disc3, Users, Github, LogOut, ArrowLeft, Music2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SearchBar from './components/SearchBar';
 import AlbumList from './components/AlbumList';
@@ -61,17 +61,26 @@ function Search() {
   const handleSearch = async (query: string) => {
     try {
       setError(null);
+      setIsLoading(true);
+      setTracks([]);
+      setSelectedArtistId(null);
+
       if (view === 'albums') {
         const albumResults = await searchAlbums(query);
         setAlbums(albumResults);
         setArtists([]);
-      } else {
+        setTracks([]);
+      } else if (view === 'artists') {
         const artistResults = await searchArtists(query);
         setArtists(artistResults);
         setAlbums([]);
+        setTracks([]);
+      } else if (view === 'songs') {
+        const trackResults = await searchTracks(query);
+        setTracks(trackResults);
+        setAlbums([]);
+        setArtists([]);
       }
-      setTracks([]);
-      setSelectedArtistId(null);
     } catch (err) {
       if (err instanceof Error && err.message === 'Authentication required') {
         setError('Please sign in with Spotify to search for music');
@@ -82,6 +91,8 @@ function Search() {
       setArtists([]);
       setTracks([]);
       setSelectedArtistId(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -308,6 +319,17 @@ function Search() {
               >
                 <Users size={20} className="mr-2" />
                 Artists
+              </button>
+              <button
+                onClick={() => setView('songs')}
+                className={`flex items-center px-6 py-2 rounded-full transition-all duration-300 ${
+                  view === 'songs'
+                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/25'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <Music2 size={20} className="mr-2" />
+                Songs
               </button>
             </div>
           </motion.div>
